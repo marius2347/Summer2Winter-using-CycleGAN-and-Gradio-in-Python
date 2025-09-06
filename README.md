@@ -27,9 +27,7 @@ Transform your images seamlessly between **summer** and **winter** styles using 
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/your-username/Summer2Winter-CycleGAN.git
-cd Summer2Winter-CycleGAN
-pip install -r requirements.txt
+git clone https://github.com/marius2347/Summer2Winter-CycleGAN.git
 ```
 
 ---
