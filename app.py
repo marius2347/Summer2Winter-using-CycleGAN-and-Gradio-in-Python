@@ -1,30 +1,36 @@
+# import necessary libraries for gradio app
 import gradio as gr
 from PIL import Image
-import numpy as np
 from model import ImageTransformer, winter_filter, summer_filter
 
-transformer = ImageTransformer()
-
+# function to handle image transformation
 def transform_image(image, direction, use_ai):
     if image is None:
         return None, "Please upload an image"
     
     try:
         if use_ai:
-            result, status = transformer.transform(image, direction)
-            if result:
-                return result, status
+            if direction == "summer_to_winter":
+                transformer = ImageTransformer(
+                    model_path="./checkpoints/summer2winter_yosemite_pretrained/latest_net_G.pth"
+                )
+            else:
+                transformer = ImageTransformer(
+                    model_path="./checkpoints/winter2summer_yosemite_pretrained/latest_net_G.pth"
+                )
+            transformed_img = transformer.transform_image(image)
+            return transformed_img, "AI transformation applied"
         
+        # fallback to preset filters
         if direction == "summer_to_winter":
-            result = winter_filter(image)
-            return result, "Winter filter applied"
+            return winter_filter(image), "Winter filter applied"
         else:
-            result = summer_filter(image)
-            return result, "Summer filter applied"
+            return summer_filter(image), "Summer filter applied"
             
     except Exception as e:
         return None, f"Error: {str(e)}"
 
+# custom CSS for better styling
 css = """
 .gradio-container {
     max-width: 1200px !important;
@@ -47,15 +53,18 @@ css = """
 }
 """
 
+# building the gradio interface
 with gr.Blocks(theme=gr.themes.Soft(), css=css) as app:
-    
+
+    # HEADER
     gr.HTML("""
     <div class="main-header">
         <h1>Summer ↔ Winter Transformer</h1>
-        <p>Transform images between seasons using AI</p>
+        <p>Transform images between seasons using AI or preset filters</p>
     </div>
     """)
 
+    # INPUT/OUTPUT SECTION
     with gr.Row():
         with gr.Column():
             gr.HTML('<div class="demo-box">')
@@ -103,17 +112,20 @@ with gr.Blocks(theme=gr.themes.Soft(), css=css) as app:
             
             gr.HTML('</div>')
 
+    # BUTTON ACTION
     transform_btn.click(
         fn=transform_image,
         inputs=[input_image, direction, use_ai],
         outputs=[output_image, status]
     )
 
+    # FOOTER
     gr.HTML("""
     <div style="text-align: center; margin-top: 2rem; color: #666;">
         <p>Built with PyTorch CycleGAN and Gradio</p>
     </div>
     """)
 
+# launch the app
 if __name__ == "__main__":
     app.launch(share=True)
